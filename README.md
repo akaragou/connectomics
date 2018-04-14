@@ -13,7 +13,8 @@
 - train.py - trains segmentation model from scratch
 - unet.py - implementation of modified unet with dropout in the upsampling path
 ---
-Results from Fully Convolutional Densent Network.
+Results from Fully Convolutional DenseNet.
+
 ![plot](https://user-images.githubusercontent.com/16754088/38761707-13cd0944-3f53-11e8-8e0a-4944d0177eea.png)
 ---
 3D segementations coming soon
