@@ -6,6 +6,32 @@ slim = tf.contrib.slim
 # Unet: https://arxiv.org/abs/1505.04597 #
 ##########################################
 
+def conv3dBN(net, output_dim, f_size, is_training, layer_name):
+    with tf.variable_scope(layer_name):
+
+        w = tf.get_variable('w', [f_size, f_size, f_size, net.get_shape()[-1], output_dim],
+                            initalizer=tf.truncated_normal_initializer(stddev=0.1))
+        conv = tf.nn.conv3d(net, w, strides=[1,1,1,1], padding='SAME')
+        b = tf.get_variable('b', [output_dim], initalizer=tf.costant_initializer(0.0))
+        conv = tf.nn.bias_add(conv, b)
+        bn = tf.contrib.layers.batch_norm(conv, is_training=is_training, scope='bn',
+                                 decay=0.997, epsilon=1e-5, center=True, scale=True)
+
+        r = tf.nn.relu(bn)
+        return r
+
+def deconv3dBN(net, output_shape, f_size, is_training, layer_name):
+    with tf.variable_scope(layer_name):
+        w = tf.get_variable('w', [f_size, f_size, f_size, output_shape[-1], output_dim],
+                            initalizer=tf.truncated_normal_initializer(stddev=0.1))
+        deconv = tf.nn.conv3d_transpose(net, w, output_shape, strides=[1, f_size, f_size, f_size, 1], padding='SAME')
+        bn = tf.contrib.layers.batch_norm(conv, is_training=is_training, scope='bn',
+                                 decay=0.997, epsilon=1e-5, center=True, scale=True)
+        r = tf.nn.relu(bn)
+        return r
+
+
+
 def unet_arg_scope(weight_decay=1e-4):
   """Defines the Unet arg scope.
     Input: weight_decay - The l2 regularization coefficient
@@ -93,6 +119,20 @@ def Unet(inputs,
         return output_map, end_points
 
 
+def Unet3D(inputs,
+             is_training=True,
+             num_classes = 2,
+             dropout_keep_prob=0.8,
+             scope='3Dunet'):
+    """ Unet 
+    Inputs: inputs - input image batch
+            is_training - boolean whether to train graph or validate/test
+            dropout_keep_prob - probability that each element is kept
+            scope - scope name for model
+    Outputs: output_map - output logits
+             end_points - output dic
+    """
+    pass
 
 
 

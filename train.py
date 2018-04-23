@@ -84,13 +84,13 @@ def train(device):
 
                 one_hot_lables = tf.one_hot(flatten_train_processed_masks, config.output_shape, axis=-1)
 
-                class_weights = tf.constant(np.load('class_weights_Berson.npy'))
-                weight_map = tf.multiply(one_hot_lables, class_weights)
-                weight_map = tf.reduce_sum(weight_map, axis=1)
+                # class_weights = tf.constant(np.load('class_weights_Berson.npy'))
+                # weight_map = tf.multiply(one_hot_lables, class_weights)
+                # weight_map = tf.reduce_sum(weight_map, axis=1)
 
                 batch_loss = tf.nn.softmax_cross_entropy_with_logits(labels = one_hot_lables, logits = flatten_train_logits)
                 
-                weighted_loss = tf.multiply(batch_loss, weight_map)
+                # weighted_loss = tf.multiply(batch_loss, weight_map)
 
                 if config.use_class_weights:
                     batch_loss = weighted_loss

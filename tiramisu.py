@@ -29,7 +29,7 @@ def layer(net, dropout_keep_prob, is_training, layer_name):
     """
     with tf.variable_scope(layer_name):
         net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
-                epsilon=1e-5, center=True,scale=True,scope='batch_norm')
+                epsilon=1e-5, center=True, scale=True,scope='batch_norm')
         net = tf.nn.relu(net)
         # growth rate set to 16
         net = slim.conv2d(net, 16, [3,3], activation_fn=None,  normalizer_fn=None, scope='conv')

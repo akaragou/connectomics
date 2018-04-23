@@ -24,20 +24,20 @@ def build_tfrecords(data_filepath, tfrecords_filepath):
     volume =  f['volume'][:].astype('uint8')
     masks =  f['masks'][:].astype('uint8')
     binary_masks =  f['binary_masks'][:].astype('uint8')
-
+    print np.shape(masks)
     train_volume = volume[:370]
-    train_masks = binary_masks[:370]
-    create_tf_record(os.path.join(main_tfrecords_dir,'Berson_train.tfrecords'), train_volume, 
+    train_masks = masks[:370]
+    create_tf_record(os.path.join(main_tfrecords_dir,'Berson_3D_train.tfrecords'), train_volume, 
                             train_masks, is_img_resize = False, is_elastic_transform = False)
 
     val_volume = volume[370:374]
-    val_masks = binary_masks[370:374]
-    create_tf_record(os.path.join(main_tfrecords_dir,'Berson_val.tfrecords'), val_volume, 
+    val_masks = masks[370:374]
+    create_tf_record(os.path.join(main_tfrecords_dir,'Berson_3D_val.tfrecords'), val_volume, 
                              val_masks, is_img_resize = False, is_elastic_transform = False)
 
     test_volume = volume[374:]
-    test_masks = binary_masks[374:]
-    create_tf_record(os.path.join(main_tfrecords_dir,'Berson_test.tfrecords'), test_volume,
+    test_masks = masks[374:]
+    create_tf_record(os.path.join(main_tfrecords_dir,'Berson_3D_test.tfrecords'), test_volume,
                              test_masks, is_img_resize = False,  is_elastic_transform = False)
 
     n = len(np.ravel(train_volume))
