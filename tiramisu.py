@@ -90,7 +90,7 @@ def dense_block(prev, num_layers, dropout_keep_prob, is_training, block_name):
 def Tiramisu_103(inputs,
          is_training=True,
          num_classes = 2,
-         dropout_keep_prob=0.75,
+         dropout_keep_prob=0.8,
          scope='tiramisu'):
     """Tiramisu 103 fully convolutional densenet 
     Inputs: inputs - input image batch
