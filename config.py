@@ -12,11 +12,11 @@ class ConnectomicsConfig():
         self.summary_path = os.path.join(self.main_dir, 'summaries')
         self.results_path = os.path.join(self.main_dir, 'results')
        
-        self.train_fn =  os.path.join(self.main_dir, 'tfrecords/Berson_3D_train.tfrecords')
-        self.val_fn =  os.path.join(self.main_dir, 'tfrecords/Berson_3D_val.tfrecords')
-        self.test_fn =  os.path.join(self.main_dir, 'tfrecords/Berson_3D_test.tfrecords')
+        self.train_fn =  os.path.join(self.main_dir, 'tfrecords/Berson_train.tfrecords')
+        self.val_fn =  os.path.join(self.main_dir, 'tfrecords/Berson_val.tfrecords')
+        self.test_fn =  os.path.join(self.main_dir, 'tfrecords/Berson_test.tfrecords')
 
-        self.test_checkpoint = os.path.join(self.checkpoint_path ,'tiramisu/tiramisu_Berson_2018_04_08_23_40_55_3400.ckpt')
+        self.test_checkpoint = os.path.join(self.checkpoint_path ,'unet/unet_Berson_2018_04_24_22_50_14_2000.ckpt')
         # self.test_checkpoint = os.path.join(self.checkpoint_path ,'unet/unet_Berson_2018_04_07_12_16_00_15300.ckpt')
         # self.test_checkpoint = os.path.join(self.checkpoint_path ,'tiramisu/tiramisu_ISBI_2018_04_09_15_36_30_2200.ckpt')
 
@@ -28,12 +28,12 @@ class ConnectomicsConfig():
         self.use_class_weights = False
         self.decay_steps = 50 # number of steps before decaying the learning rate
         self.learning_rate_decay_factor = 0.5 
-        self.train_batch_size = 2
-        self.val_batch_size = 2
+        self.train_batch_size = 1
+        self.val_batch_size = 1
         self.num_batches_to_validate_over = 4 # number of batches to validate over 
         self.validate_every_num_steps = 100 # perform a validation step
         self.num_train_epochs = 100
-        self.output_shape = 254 # output shape of the model if 2 we have binary classification 
+        self.output_shape = 2 # output shape of the model if 2 we have binary classification 
         self.input_image_size = [384, 384] # size of the input tf record image
 
         # various options for altering input images during training and validation

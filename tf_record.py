@@ -62,9 +62,9 @@ def preprocessing_Berson_with_mask(img, masks):
              normalized_mask - scaled mask batch
     """
     normalized_img = (img - BERSON_MEAN)
-    masks = tf.to_int64(masks)
-    # normalized_mask = tf.to_int64(masks/255.0)
-    return normalized_img, masks
+    masks = tf.squeeze(masks)
+    normalized_mask = tf.to_int64(masks/255.0)
+    return normalized_img, normalized_mask
 
 
 def elastic_transform(image, alpha, sigma): 

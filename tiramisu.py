@@ -24,8 +24,7 @@ def layer(net, dropout_keep_prob, is_training, layer_name):
                 dropout_keep_prob - probability that each element is kept
                 is_training - boolean whether to train graph or validate/test
                 layer_name - scope name for layer
-
-        Output: net - a feature map after non lineratiry, convolution and dropout is applied
+        Output: net - a feature map 
     """
     with tf.variable_scope(layer_name):
         net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
@@ -43,7 +42,7 @@ def transition_down(net, shape, dropout_keep_prob, is_training, transition_down_
                 dropout_keep_prob - probability that each element is kept
                 is_training - boolean whether to train graph or validate/test
                 transition_down_name - scope name for module
-        Output: net - a feature map after non lineratiry, convolution and dropout is applied
+        Output: net - a feature map 
     """
     with tf.variable_scope(transition_down_name):
         net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
@@ -59,7 +58,7 @@ def transition_up(net, shape, transition_up_name):
         Inputs: net - input feature map
                 shape - feature map shape
                 layer_name - scope name for upsampling
-        Output: net - a feature map after non lineratiry, convolution and dropout is applied
+        Output: net - a feature map 
     """
     with tf.variable_scope(transition_up_name):
         net = slim.conv2d_transpose(net, shape, [3,3], stride=2, scope = 'transpose_conv')

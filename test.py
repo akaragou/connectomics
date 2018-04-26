@@ -12,7 +12,7 @@ from scipy import misc
 from tensorflow.contrib import slim
 import matplotlib.pyplot as plt
 from config import ConnectomicsConfig
-from tf_record import preprocessing_Berson_with_mask, preprocessing_ISBI_with_mask, read_and_decode, read_and_decode_test
+from tf_record import preprocessing_Berson_with_mask, preprocessing_ISBI_with_mask, read_and_decode
 from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
 
 def test_model(device):
@@ -37,12 +37,12 @@ def test_model(device):
 
     # centering images and masks
     test_processed_images, test_processed_masks = preprocessing_Berson_with_mask(test_images, test_masks)
-    with tf.variable_scope('tiramisu') as tiramisu_scope:
-        with slim.arg_scope(tiramisu.tiramisu_arg_scope()):
-            test_logits, _ = tiramisu.Tiramisu_103(test_processed_images,
+    with tf.variable_scope('unet') as unet_scope:
+        with slim.arg_scope(unet.unet_arg_scope()):
+            test_logits, _ = unet.Unet(test_processed_images,
                                         is_training=False,
                                         num_classes = config.output_shape,
-                                        scope=tiramisu_scope)
+                                        scope=unet_scope)
 
     test_prob = tf.nn.softmax(test_logits)
     test_scores = tf.argmax(test_prob, axis=3)
@@ -81,7 +81,7 @@ def test_model(device):
                 ax3.imshow(np.squeeze(np_predicted_mask), cmap='gray')
                 ax3.set_title('predicted mask')
                 ax3.axis('off')
-                plt.show()
+                plt.pause(1)
 
                 count += 1 
                 total_a_rand += np_test_a_rand
