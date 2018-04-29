@@ -26,7 +26,7 @@ def test_model(device):
     config = ConnectomicsConfig()
 
     # load test data
-    test_filename_queue = tf.train.string_input_producer([config.test_fn], num_epochs=1)
+    test_filename_queue = tf.train.string_input_producer([config.test_fn], num_epochs = 1)
 
     test_images, test_masks  = read_and_decode(filename_queue = test_filename_queue,
                                                      img_dims = config.input_image_size,
@@ -37,9 +37,9 @@ def test_model(device):
 
     # centering images and masks
     test_processed_images, test_processed_masks = preprocessing_Berson_with_mask(test_images, test_masks)
-    with tf.variable_scope('unet') as unet_scope:
+    with tf.variable_scope('unetV2') as unet_scope:
         with slim.arg_scope(unet.unet_arg_scope()):
-            test_logits, _ = unet.Unet(test_processed_images,
+            test_logits, _ = unet.UnetV2(test_processed_images,
                                         is_training=False,
                                         num_classes = config.output_shape,
                                         scope=unet_scope)

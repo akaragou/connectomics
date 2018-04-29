@@ -16,7 +16,7 @@ class ConnectomicsConfig():
         self.val_fn =  os.path.join(self.main_dir, 'tfrecords/Berson_val.tfrecords')
         self.test_fn =  os.path.join(self.main_dir, 'tfrecords/Berson_test.tfrecords')
 
-        self.test_checkpoint = os.path.join(self.checkpoint_path ,'unet/unet_Berson_2018_04_24_22_50_14_2000.ckpt')
+        self.test_checkpoint = os.path.join(self.checkpoint_path ,'unetV2/unetV2_Berson_2018_04_28_21_26_39_11100.ckpt')
         # self.test_checkpoint = os.path.join(self.checkpoint_path ,'unet/unet_Berson_2018_04_07_12_16_00_15300.ckpt')
         # self.test_checkpoint = os.path.join(self.checkpoint_path ,'tiramisu/tiramisu_ISBI_2018_04_09_15_36_30_2200.ckpt')
 
@@ -24,15 +24,15 @@ class ConnectomicsConfig():
         self.optimizer = "adam"
         self.momentum = 0.95 # if optimizer is nestrov
         self.initial_learning_rate = 3e-04
-        self.use_decay = False
+        self.use_decay = True
         self.use_class_weights = False
-        self.decay_steps = 50 # number of steps before decaying the learning rate
+        self.decay_steps = 10000 # number of steps before decaying the learning rate
         self.learning_rate_decay_factor = 0.5 
-        self.train_batch_size = 1
+        self.train_batch_size = 16
         self.val_batch_size = 1
         self.num_batches_to_validate_over = 4 # number of batches to validate over 
         self.validate_every_num_steps = 100 # perform a validation step
-        self.num_train_epochs = 100
+        self.num_train_epochs = 1000
         self.output_shape = 2 # output shape of the model if 2 we have binary classification 
         self.input_image_size = [384, 384] # size of the input tf record image
 
@@ -41,12 +41,14 @@ class ConnectomicsConfig():
                                         'rand_flip_left_right':True,
                                         'rand_flip_top_bottom':True,
                                         'rand_rotate':True,
+                                        'rand_crop':True
                                        }
 
         self.val_augmentations_dic = {
                                       'rand_flip_left_right':False,
                                       'rand_flip_top_bottom':False,
                                       'rand_rotate':False,
+                                      'rand_crop':False
                                      }
     
 

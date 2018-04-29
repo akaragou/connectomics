@@ -17,7 +17,7 @@ import cv2
 
 # means for centering image data
 ISBI_2012_MEAN = 126
-BERSON_MEAN = 152
+BERSON_MEAN = 151
 
 def draw_grid(im, grid_size):
     """ Draws grid lines on input images
@@ -222,11 +222,17 @@ def read_and_decode(filename_queue=None, img_dims=[384,384], size_of_batch=4,\
         image = tf.expand_dims(image, -1)
         mask = tf.expand_dims(mask,-1) 
 
-
     if augmentations_dic['rand_rotate']:
         random_angle = random.choice([0,90,180,270])
         image = tf.contrib.image.rotate(image, math.radians(random_angle))
         mask = tf.contrib.image.rotate(mask, math.radians(random_angle))
+
+    if augmentations_dic['rand_crop']:
+        image_mask = tf.random_crop(image_mask, size=[128, 128, 2])
+        image = image_mask[...,0]
+        mask = image_mask[...,1]
+        image = tf.expand_dims(image, -1)
+        mask = tf.expand_dims(mask,-1)
         
 
     if shuffle:

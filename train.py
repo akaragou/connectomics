@@ -31,7 +31,7 @@ def train(device):
         [config.val_fn], num_epochs=config.num_train_epochs)
 
         # defining model names and setting output and summary directories
-        model_train_name = 'unet'
+        model_train_name = 'unetV2'
         dt_stamp = time.strftime("Berson_%Y_%m_%d_%H_%M_%S")
         out_dir = config.get_results_path(model_train_name, dt_stamp)
         summary_dir = config.get_summaries_path(model_train_name, dt_stamp)
@@ -43,7 +43,7 @@ def train(device):
                                                          img_dims = config.input_image_size,
                                                          size_of_batch = config.train_batch_size,
                                                           augmentations_dic = config.train_augmentations_dic,
-                                                         num_of_threads = 1,
+                                                         num_of_threads = 2,
                                                          shuffle = True)
 
         val_images, val_masks  = read_and_decode(filename_queue = val_filename_queue,
@@ -64,12 +64,12 @@ def train(device):
         step = get_or_create_global_step()
         step_op = tf.assign(step, step+1)
 
-        with tf.variable_scope('unet') as unet_scope:
+        with tf.variable_scope('unetV2') as unet_scope:
             with tf.name_scope('train') as train_scope:
 
                 train_processed_images, train_processed_masks = preprocessing_Berson_with_mask(train_images, train_masks)
                 with slim.arg_scope(unet.unet_arg_scope()):
-                    train_logits, _ = unet.Unet(train_processed_images,
+                    train_logits, _ = unet.UnetV2(train_processed_images,
                                                 is_training=True,
                                                 num_classes = config.output_shape,
                                                 scope=unet_scope)
@@ -130,7 +130,7 @@ def train(device):
                 val_processed_images, val_processed_masks = preprocessing_Berson_with_mask(val_images, val_masks)
 
                 with slim.arg_scope(unet.unet_arg_scope()):
-                    val_logits, _ = unet.Unet(val_processed_images,
+                    val_logits, _ = unet.UnetV2(val_processed_images,
                                                 is_training=False,
                                                 num_classes = config.output_shape,
                                                 scope=unet_scope)
@@ -193,7 +193,7 @@ def train(device):
 
                         # Save the model checkpoint if it's the best yet
                         if val_a_rand_total <= val_a_rand_min:
-                            file_name = 'unet_{0}_{1}'.format(dt_stamp, step_count)
+                            file_name = 'unetV2_{0}_{1}'.format(dt_stamp, step_count)
                             saver.save(
                                 sess,
                                 config.get_checkpoint_filename(model_train_name, file_name))
