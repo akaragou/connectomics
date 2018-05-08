@@ -7,7 +7,7 @@ import os
 from PIL import Image, ImageSequence
 from tf_record import create_tf_record
 
-def build_train_val_tfrecords(data_filepath, tfrecords_filepath):
+def build_tfrecords(data_filepath, tfrecords_filepath):
     """
     Reads data from the data file path and produces tfrecords for training, validation 
     and test data
@@ -28,17 +28,23 @@ def build_train_val_tfrecords(data_filepath, tfrecords_filepath):
         masks.append(np.array(m))
     np_masks = np.array(masks)
 
-    train_volume = np_volume[:28]
-    train_masks = np_masks[:28]
-
+    train_volume = np_volume[:27]
+    train_masks = np_masks[:27]
     create_tf_record(os.path.join(main_tfrecords_dir,'ISBI_train.tfrecords'), train_volume, train_masks)
 
-    val_volume = np_volume[28:]
-    val_masks = np_masks[28:]
+    n = len(np.ravel(train_volume))
+    print np.sum(train_volume)/n
+
+    val_volume = np_volume[27:28]
+    val_masks = np_masks[27:28]
     create_tf_record(os.path.join(main_tfrecords_dir,'ISBI_val.tfrecords'), val_volume, val_masks)
+
+    test_volume = np_volume[28:]
+    test_masks = np_masks[28:]
+    create_tf_record(os.path.join(main_tfrecords_dir,'ISBI_test.tfrecords'), test_volume, test_masks)
 
 if __name__ == '__main__':
     main_data_dir = '/media/data_cifs/andreas/connectomics/ISBI_2012_data/'
     main_tfrecords_dir = '/media/data_cifs/andreas/connectomics/tfrecords/'
 
-    build_train_val_tfrecords(os.path.join(main_data_dir,'train'),main_tfrecords_dir)
+    build_tfrecords(os.path.join(main_data_dir,'train'),main_tfrecords_dir)

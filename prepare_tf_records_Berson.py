@@ -51,22 +51,22 @@ def build_tfrecords(data_filepath, tfrecords_filepath):
     f = h5py.File(os.path.join(data_filepath,'updated_Berson.h5'), 'r')
 
     volume =  f['volume'][:].astype('uint8')
-    masks =  f['binary_masks'][:].astype('uint8')
+    masks =  f['masks'][:].astype('uint8')
     
     binary_masks =  f['binary_masks'][:].astype('uint8')
     print np.shape(masks)
     train_volume = volume[:190]
-    train_masks = masks[:190]
+    train_masks = binary_masks[:190]
     create_tf_record(os.path.join(main_tfrecords_dir,'Berson_train.tfrecords'), train_volume, 
                             train_masks, is_img_resize = False, is_elastic_transform = False)
 
     val_volume = volume[190:194]
-    val_masks = masks[190:194]
+    val_masks = binary_masks[190:194]
     create_tf_record(os.path.join(main_tfrecords_dir,'Berson_val.tfrecords'), val_volume, 
                              val_masks, is_img_resize = False, is_elastic_transform = False)
 
     test_volume = volume[194:]
-    test_masks = masks[194:]
+    test_masks = binary_masks[194:]
     create_tf_record(os.path.join(main_tfrecords_dir,'Berson_test.tfrecords'), test_volume,
                              test_masks, is_img_resize = False,  is_elastic_transform = False)
 

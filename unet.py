@@ -37,23 +37,31 @@ def conv_residual_block(net, num_features, is_training, is_batch_norm, layer_nam
         Output: net - a feature map 
     """
     with tf.variable_scope(layer_name):
-        net = slim.conv2d(net, num_features, [3,3], activation_fn=None,  normalizer_fn=None, scope='conv%d_1' % int(layer_name[-1]))
-        if is_batch_norm:
-            net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
-                    epsilon=1e-5, center=True, scale=True,scope='batch_norm1')
-        shortcut = tf.nn.elu(net)
-        net = shortcut
         net = slim.conv2d(net, num_features, [3,3], activation_fn=None,  normalizer_fn=None, scope='conv%d_2' % int(layer_name[-1]))
         if is_batch_norm:
             net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
                     epsilon=1e-5, center=True, scale=True,scope='batch_norm2')
-        net = tf.nn.elu(net)
+        shortcut = tf.nn.relu(net)
+        net = shortcut
         net = slim.conv2d(net, num_features, [3,3], activation_fn=None,  normalizer_fn=None, scope='conv%d_3' % int(layer_name[-1]))
         if is_batch_norm:
             net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
                     epsilon=1e-5, center=True, scale=True,scope='batch_norm3')
-        net = tf.nn.elu(net + shortcut)
+        net = tf.nn.relu(net)
+        net = slim.conv2d(net, num_features, [3,3], activation_fn=None,  normalizer_fn=None, scope='conv%d_4' % int(layer_name[-1]))
+        if is_batch_norm:
+            net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
+                    epsilon=1e-5, center=True, scale=True,scope='batch_norm4')
+        net = tf.nn.relu(net + shortcut)
         return net
+
+def conv_bn_relu(net, num_features, is_training, is_batch_norm, scope_name):
+    net = slim.conv2d(net, num_features, [3,3], activation_fn=None, normalizer_fn=None, scope=scope_name)
+    if is_batch_norm:
+        net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
+                epsilon=1e-5, center=True, scale=True,scope='batch_norm%d'% int(scope_name[-1]))
+    net = tf.nn.relu(net)
+    return net
 
 
 def unet_arg_scope(weight_decay=1e-4):
@@ -88,7 +96,7 @@ def Unet(inputs,
     with tf.variable_scope(scope, 'unet', [inputs]) as sc:
         end_points_collection = sc.name + '_end_points'
         # Collect outputs for conv2d, and max_pool2d.
-    with slim.arg_scope([slim.conv2d, slim.max_pool2d],
+    with slim.arg_scope([slim.conv2d,slim.conv2d_transpose, slim.max_pool2d],
                         outputs_collections=end_points_collection):
 
         ######################
@@ -151,13 +159,16 @@ def Unet(inputs,
 
         return output_map, end_points
 
-def UnetV2(inputs,
+
+##############################################
+# FusionNet: https://arxiv.org/abs/1612.05360 #
+###############################################
+
+def FusionNet(inputs,
          num_classes = 2,
-         dropout_keep_prob = 0.8,
          is_training = True,
-         is_dropout = True,
-         is_batch_norm = True,
-         scope='unetV2'):
+         is_batch_norm = False,
+         scope='fusionNet'):
     """ Modifided Unet 
     Inputs: inputs - input image batch
             is_training - boolean whether to train graph or validate/test
@@ -166,80 +177,78 @@ def UnetV2(inputs,
     Outputs: output_map - output logits
              end_points - output dic
     """
-    with tf.variable_scope(scope, 'unetV2', [inputs]) as sc:
+    with tf.variable_scope(scope, 'fusionNet', [inputs]) as sc:
         end_points_collection = sc.name + '_end_points'
         # Collect outputs for conv2d, and max_pool2d.
-    with slim.arg_scope([slim.conv2d, slim.max_pool2d],
+    with slim.arg_scope([slim.conv2d, slim.conv2d_transpose, slim.max_pool2d],
                         outputs_collections=end_points_collection):
 
         ######################
         # downsampling  path #
         ######################
-        conv1 = conv_residual_block(inputs, 64, is_training, is_batch_norm, 'conv1')
-        conv1_4 = slim.conv2d(conv1, 64, [1,1], activation_fn=None,  normalizer_fn=None, scope='conv1/conv1_4')
-        if is_batch_norm:
-            conv1_4 = slim.batch_norm(conv1_4, is_training=is_training, decay=0.997, 
-                    epsilon=1e-5, center=True, scale=True,scope='conv1/batch_norm4')
-        conv1_4 = tf.nn.elu(conv1_4)
-        pool1 = slim.max_pool2d(conv1_4, [2, 2], scope='pool1')
+        conv1_1 = conv_bn_relu(inputs, 64, is_training, is_batch_norm, 'conv1/conv1_1')
+        conv1 = conv_residual_block(conv1_1, 64, is_training, is_batch_norm, 'conv1')
+        conv1_5 = conv_bn_relu(conv1, 64, is_training, is_batch_norm, 'conv1/conv1_5')
+        pool1 = slim.max_pool2d(conv1_5, [2, 2], scope='pool1')
 
-        conv2 = conv_residual_block(pool1, 128, is_training, is_batch_norm, 'conv2')
-        conv2_4 = slim.conv2d(conv2, 128, [1,1], activation_fn=None,  normalizer_fn=None, scope='conv2/conv2_4')
-        if is_batch_norm:
-            conv2_4 = slim.batch_norm(conv2_4, is_training=is_training, decay=0.997, 
-                    epsilon=1e-5, center=True, scale=True,scope='conv2/batch_norm4')
-        conv2_4 = tf.nn.elu(conv2_4)
-        pool2 = slim.max_pool2d(conv2_4, [2, 2], scope='pool2')
+        conv2_1 = conv_bn_relu(pool1, 128, is_training, is_batch_norm, 'conv2/conv2_1')
+        conv2 = conv_residual_block(conv2_1, 128, is_training, is_batch_norm, 'conv2')
+        conv2_5 = conv_bn_relu(conv2, 128, is_training, is_batch_norm, 'conv2/conv2_5')
+        pool2 = slim.max_pool2d(conv2_5, [2, 2], scope='pool2')
 
-        conv3 = conv_residual_block(pool2, 256, is_training, is_batch_norm, 'conv3')
-        conv3_4 = slim.conv2d(conv3, 256, [1,1], activation_fn=None,  normalizer_fn=None, scope='conv3/conv3_4')
-        if is_batch_norm:
-            conv3_4 = slim.batch_norm(conv3_4, is_training=is_training, decay=0.997, 
-                    epsilon=1e-5, center=True, scale=True,scope='conv3/batch_norm4')
-        conv3_4 = tf.nn.elu(conv3_4)
-        pool3 = slim.max_pool2d(conv3_4, [2, 2], scope='pool3')
+        conv3_1 = conv_bn_relu(pool2, 256, is_training, is_batch_norm, 'conv3/conv3_1')
+        conv3 = conv_residual_block(conv3_1, 256, is_training, is_batch_norm, 'conv3')
+        conv3_5 = conv_bn_relu(conv3, 256, is_training, is_batch_norm, 'conv3/conv3_5')
+        pool3 = slim.max_pool2d(conv3_5, [2, 2], scope='pool3')
 
-        conv4 = conv_residual_block(pool3, 512, is_training, is_batch_norm, 'conv4')
-        conv4_4 = slim.conv2d(conv4, 512, [1,1], activation_fn=None,  normalizer_fn=None, scope='conv4/conv4_4')
-        if is_batch_norm:
-            conv4_4 = slim.batch_norm(conv4_4, is_training=is_training, decay=0.997, 
-                    epsilon=1e-5, center=True, scale=True,scope='conv4/batch_norm4')
-        conv4_4 = tf.nn.elu(conv4_4)
-        pool4 = slim.max_pool2d(conv4_4, [2, 2], scope='pool4')
+        conv4_1 = conv_bn_relu(pool3, 512, is_training, is_batch_norm, 'conv4/conv4_1')
+        conv4 = conv_residual_block(conv4_1, 512, is_training, is_batch_norm, 'conv4')
+        conv4_5 = conv_bn_relu(conv4, 512, is_training, is_batch_norm, 'conv4/conv4_5')
+        pool4 = slim.max_pool2d(conv4_5, [2, 2], scope='pool4')
 
 
         ##############
         # bottleneck #
         ##############
-        conv5 = conv_residual_block(pool4, 1024, is_training, is_batch_norm, 'conv5')
+        conv5_1 = conv_bn_relu(pool4, 1024, is_training, is_batch_norm, 'conv5/conv5_1')
+        conv5 = conv_residual_block(conv5_1, 1024, is_training, is_batch_norm, 'conv5')
+        conv5_5 = conv_bn_relu(conv5, 1024, is_training, is_batch_norm, 'conv5/conv5_5')
 
         ###################
         # upsampling path #
         ###################
-        conv6_up = slim.conv2d_transpose(conv5, 512, [1,1], normalizer_fn=None, stride=2, scope='conv6/transpose_conv6')
-        conv6_up += conv4_4
-        conv6_up = tf.nn.elu(conv6_up)
-        conv6 = conv_residual_block(conv6_up, 512, is_training, is_batch_norm, 'conv6')
+        conv6_up = slim.conv2d_transpose(conv5_5, 512, [2,2], activation_fn=None,  normalizer_fn=None, stride=2, scope='conv6/transpose_conv6')
+        conv6_up += conv4_5
+        conv6_up = tf.nn.relu(conv6_up)
+        conv6_1 = conv_bn_relu(conv6_up, 512, is_training, is_batch_norm, 'conv6/conv6_1')
+        conv6 = conv_residual_block(conv6_1, 512, is_training, is_batch_norm, 'conv6')
+        conv6_5 = conv_bn_relu(conv6, 512, is_training, is_batch_norm, 'conv6/conv6_5')
  
-        conv7_up = slim.conv2d_transpose(conv6, 256, [1,1], normalizer_fn=None, stride=2, scope='conv7/transpose_conv7')
-        conv7_up += conv3_4
-        conv7_up = tf.nn.elu(conv7_up)
-        conv7 = conv_residual_block(conv7_up, 256, is_training, is_batch_norm, 'conv7')
+        conv7_up = slim.conv2d_transpose(conv6_5, 256, [2,2], activation_fn=None,  normalizer_fn=None, stride=2, scope='conv7/transpose_conv7')
+        conv7_up += conv3_5
+        conv7_up = tf.nn.relu(conv7_up)
+        conv7_1 = conv_bn_relu(conv7_up, 256, is_training, is_batch_norm, 'conv7/conv7_1')
+        conv7 = conv_residual_block(conv7_1, 256, is_training, is_batch_norm, 'conv7')
+        conv7_5 = conv_bn_relu(conv7, 256, is_training, is_batch_norm, 'conv7/conv7_5')
 
-        conv8_up = slim.conv2d_transpose(conv7, 128, [1,1],normalizer_fn=None,  stride=2, scope='conv8/transpose_conv8')
-        conv8_up += conv2_4
-        conv8_up = tf.nn.elu(conv8_up)
-        conv8 = conv_residual_block(conv8_up, 128, is_training, is_batch_norm, 'conv8')
+        conv8_up = slim.conv2d_transpose(conv7_5, 128, [2,2], activation_fn=None,  normalizer_fn=None,  stride=2, scope='conv8/transpose_conv8')
+        conv8_up += conv2_5
+        conv8_up = tf.nn.relu(conv8_up)
+        conv8_1 = conv_bn_relu(conv8_up, 128, is_training, is_batch_norm, 'conv8/conv8_1')
+        conv8 = conv_residual_block(conv8_1, 128, is_training, is_batch_norm, 'conv8')
+        conv8_5 = conv_bn_relu(conv8, 128, is_training, is_batch_norm, 'conv8/conv8_5')
 
-        conv9_up = slim.conv2d_transpose(conv8, 64, [1,1], normalizer_fn=None, stride=2, scope='conv9/transpose_conv9')
-        conv9_up += conv1_4
-        conv9_up = tf.nn.elu(conv9_up)
-        conv9 = conv_residual_block(conv9_up, 64, is_training, is_batch_norm, 'conv9')
+        conv9_up = slim.conv2d_transpose(conv8_5, 64, [2,2], activation_fn=None,  normalizer_fn=None, stride=2, scope='conv9/transpose_conv9')
+        conv9_up += conv1_5
+        conv9_up = tf.nn.relu(conv9_up)
+        conv9_1 = conv_bn_relu(conv9_up, 64, is_training, is_batch_norm, 'conv9/conv9_1')
+        conv9 = conv_residual_block(conv9_1, 64, is_training, is_batch_norm, 'conv9')
+        conv9_5 = conv_bn_relu(conv9, 64, is_training, is_batch_norm, 'conv9/conv9_5')
 
         ###############
         # outpput map #
         ###############
-        output_map = slim.conv2d(conv9, num_classes, [1, 1], 
+        output_map = slim.conv2d(conv9_5, num_classes, [1, 1], 
                                 activation_fn=None, normalizer_fn=None, 
                                 scope='output_layer')
 

@@ -8,12 +8,17 @@ import numpy as np
 import time
 import unet
 import tiramisu
-from scipy import misc
+import cv2
+import h5py
+from scipy import signal
+from skimage import morphology
 from tensorflow.contrib import slim
+from scipy import ndimage as ndi
 import matplotlib.pyplot as plt
 from config import ConnectomicsConfig
 from tf_record import preprocessing_Berson_with_mask, preprocessing_ISBI_with_mask, read_and_decode
 from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
+import scipy.stats as st
 
 def test_model(device):
     """
@@ -36,10 +41,10 @@ def test_model(device):
                                                      shuffle = False)
 
     # centering images and masks
-    test_processed_images, test_processed_masks = preprocessing_Berson_with_mask(test_images, test_masks)
-    with tf.variable_scope('unetV2') as unet_scope:
+    test_processed_images, test_processed_masks = preprocessing_ISBI_with_mask(test_images, test_masks)
+    with tf.variable_scope('fusionNet') as unet_scope:
         with slim.arg_scope(unet.unet_arg_scope()):
-            test_logits, _ = unet.UnetV2(test_processed_images,
+            test_logits, _ = unet.FusionNet(test_processed_images,
                                         is_training=False,
                                         num_classes = config.output_shape,
                                         scope=unet_scope)
@@ -62,7 +67,7 @@ def test_model(device):
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
         count = 0
-        test_volume = []
+        test_preds = []
         total_a_rand = 0
         try:
 
@@ -81,7 +86,8 @@ def test_model(device):
                 ax3.imshow(np.squeeze(np_predicted_mask), cmap='gray')
                 ax3.set_title('predicted mask')
                 ax3.axis('off')
-                plt.pause(1)
+                plt.show()
+                test_preds.append(np_predicted_mask)
 
                 count += 1 
                 total_a_rand += np_test_a_rand
@@ -93,10 +99,46 @@ def test_model(device):
             coord.request_stop()  
         coord.join(threads)
 
+    return np.array(test_preds)
+
+def gkern(kernlen=6, nsig=1):
+    """Returns a 2D Gaussian kernel array."""
+
+    interval = (2*nsig+1.)/(kernlen)
+    x = np.linspace(-nsig-interval/2., nsig+interval/2., kernlen+1)
+    kern1d = np.diff(st.norm.cdf(x))
+    kernel_raw = np.sqrt(np.outer(kern1d, kern1d))
+    kernel = kernel_raw/kernel_raw.sum()
+    return kernel
+
+def apply_filter(kernel, img):
+    img = signal.fftconvolve(img, kernel, mode='same')
+    return img
 
 if __name__ == '__main__':
+
+    # f = h5py.File('/media/data_cifs/andreas/connectomics/Berson/updated_Berson.h5', 'r')
+    # volume = f['volume'][:].astype('uint8')
+    # masks =  f['masks'][:].astype('uint8')
     parser = argparse.ArgumentParser()
     parser.add_argument("device")
     args = parser.parse_args()
 
-    test_model(args.device)
+    preds = test_model(args.device)
+
+    # probability_maps = []
+    # for p in preds:
+    #     probability_maps.append(apply_filter(gkern(), np.squeeze(p)))
+    # probability_maps = np.array(probability_maps)
+
+    # watersheds = []
+    # for p in probability_maps:
+    #     seeds, n_seeds = ndi.label( ndi.binary_erosion( p > 0.6, iterations=6 ) )
+    #     ws = morphology.watershed(-p, seeds)
+    #     watersheds.append(ws)
+
+    # watersheds = np.array(watersheds)
+
+
+
+
