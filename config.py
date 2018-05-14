@@ -17,10 +17,13 @@ class ConnectomicsConfig():
         self.test_fn =  os.path.join(self.main_dir, 'tfrecords/ISBI_test.tfrecords')
 
         # self.test_checkpoint = os.path.join(self.checkpoint_path ,'unetV2/unetV2_Berson_2018_04_28_21_26_39_11100.ckpt')
-
-        self.test_checkpoint = os.path.join(self.checkpoint_path ,'fusionNet/fusionNet_Berson_2018_05_07_21_54_13_1300.ckpt')
         #self.test_checkpoint = os.path.join(self.checkpoint_path ,'unet/unet_Berson_2018_04_07_12_16_00_15300.ckpt')
         # self.test_checkpoint = os.path.join(self.checkpoint_path ,'tiramisu/tiramisu_Berson_2018_04_29_19_33_14_23300.ckpt')
+
+        # self.test_checkpoint = os.path.join(self.checkpoint_path ,'fusionNet/fusionNet_Berson_2018_05_07_21_54_13_1300.ckpt')
+        # self.test_checkpoint = os.path.join(self.checkpoint_path ,'unet/unet_ISBI_2018_05_07_22_19_07_1300.ckpt')
+        self.test_checkpoint = os.path.join(self.checkpoint_path ,'tiramisu/tiramisu_ISBI_2018_05_07_22_45_21_1300.ckpt')
+        
 
 
         self.optimizer = "adam"

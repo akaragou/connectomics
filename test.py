@@ -42,9 +42,9 @@ def test_model(device):
 
     # centering images and masks
     test_processed_images, test_processed_masks = preprocessing_ISBI_with_mask(test_images, test_masks)
-    with tf.variable_scope('fusionNet') as unet_scope:
-        with slim.arg_scope(unet.unet_arg_scope()):
-            test_logits, _ = unet.FusionNet(test_processed_images,
+    with tf.variable_scope('tiramisu') as unet_scope:
+        with slim.arg_scope(tiramisu.tiramisu_arg_scope()):
+            test_logits, _ = tiramisu.Tiramisu_103(test_processed_images,
                                         is_training=False,
                                         num_classes = config.output_shape,
                                         scope=unet_scope)
@@ -125,6 +125,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     preds = test_model(args.device)
+    np.save('tiramisu.npy', preds)
 
     # probability_maps = []
     # for p in preds:

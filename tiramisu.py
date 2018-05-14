@@ -27,12 +27,12 @@ def layer(net, dropout_keep_prob, is_training, layer_name):
         Output: net - a feature map 
     """
     with tf.variable_scope(layer_name):
-        net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
-                epsilon=1e-5, center=True, scale=True,scope='batch_norm')
+        # net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
+        #         epsilon=1e-5, center=True, scale=True,scope='batch_norm')
         net = tf.nn.relu(net)
         # growth rate set to 16
         net = slim.conv2d(net, 16, [3,3], activation_fn=None,  normalizer_fn=None, scope='conv')
-        net = slim.dropout(net, dropout_keep_prob, is_training=is_training, scope='dropout')
+        # net = slim.dropout(net, dropout_keep_prob, is_training=is_training, scope='dropout')
         return net
 
 def transition_down(net, shape, dropout_keep_prob, is_training, transition_down_name):
@@ -45,11 +45,11 @@ def transition_down(net, shape, dropout_keep_prob, is_training, transition_down_
         Output: net - a feature map 
     """
     with tf.variable_scope(transition_down_name):
-        net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
-                epsilon=1e-5, center=True,scale=True,scope='batch_norm')
+        # net = slim.batch_norm(net, is_training=is_training, decay=0.997, 
+        #         epsilon=1e-5, center=True,scale=True,scope='batch_norm')
         net = tf.nn.relu(net)
         net = slim.conv2d(net, shape, [1, 1], activation_fn=None,  normalizer_fn=None, scope='conv')
-        net = slim.dropout(net,dropout_keep_prob, is_training=is_training, scope='dropout')
+        # net = slim.dropout(net,dropout_keep_prob, is_training=is_training, scope='dropout')
         net = slim.max_pool2d(net, [2, 2], scope='pool')
         return net
 
