@@ -2,30 +2,6 @@ from __future__ import division
 import tensorflow as tf 
 slim = tf.contrib.slim 
 
-def conv3d(net, output_dim, f_size, is_training, layer_name):
-    with tf.variable_scope(layer_name):
-
-        w = tf.get_variable('w', [f_size, f_size, f_size, net.get_shape()[-1], output_dim],
-                            initializer=tf.truncated_normal_initializer(stddev=0.1))
-        conv = tf.nn.conv3d(net, w, strides=[1,1,1,1], padding='SAME')
-        b = tf.get_variable('b', [output_dim], initializer=tf.costant_initializer(0.0))
-        conv = tf.nn.bias_add(conv, b)
-        bn = tf.contrib.layers.batch_norm(conv, is_training=is_training, scope='bn',
-                                 decay=0.997, epsilon=1e-5, center=True, scale=True)
-
-        r = tf.nn.elu(bn)
-        return r
-
-def deconv3d(net, output_shape, f_size, is_training, layer_name):
-    with tf.variable_scope(layer_name):
-        w = tf.get_variable('w', [f_size, f_size, f_size, output_shape[-1], output_dim],
-                            initializer=tf.truncated_normal_initializer(stddev=0.1))
-        deconv = tf.nn.conv3d_transpose(net, w, output_shape, strides=[1, f_size, f_size, f_size, 1], padding='SAME')
-        bn = tf.contrib.layers.batch_norm(conv, is_training=is_training, scope='bn',
-                                 decay=0.997, epsilon=1e-5, center=True, scale=True)
-        r = tf.nn.elu(bn)
-        return r
-
 def conv_residual_block(net, num_features, is_training, is_batch_norm, layer_name):
     """ Unet_V2 residual conv block 
         Inputs: net - input feature map
@@ -164,7 +140,7 @@ def Unet(inputs,
 # FusionNet: https://arxiv.org/abs/1612.05360 #
 ###############################################
 
-def FusionNet(inputs,
+def ResidualUnet(inputs,
          num_classes = 2,
          is_training = True,
          is_batch_norm = False,
@@ -256,14 +232,6 @@ def FusionNet(inputs,
         end_points = slim.utils.convert_collection_to_dict(end_points_collection)
 
         return output_map, end_points
-
-
-###############################################################################
-# Residual Symmetric U-Net architecture: https://arxiv.org/pdf/1706.00120.pdf #
-###############################################################################
-def Residual_Symmetric_Unet(): 
-    """ Coming soon!"""
-    pass 
 
 
 

@@ -27,18 +27,18 @@ def adjust_files(data_filepath):
         adjusted_mask = cv2.dilate(adjusted_mask,kernel,iterations = 1)
         adjusted_mask = np.invert(adjusted_mask)
         adjusted_masks.append(adjusted_mask)
-        # plt.imshow(mask)
-        # plt.pause(0.5)
-        # plt.imshow(adjusted_mask, cmap='gray')
-        # plt.pause(0.5)
+        plt.imshow(mask)
+        plt.pause(0.5)
+        plt.imshow(adjusted_mask, cmap='gray')
+        plt.pause(0.5)
 
     adjusted_masks = np.array(adjusted_masks)
 
-    hf = h5py.File(os.path.join(data_filepath,'updated_Berson.h5'), 'w')
-    hf.create_dataset('volume', data=volume)
-    hf.create_dataset('masks', data=masks)
-    hf.create_dataset('binary_masks', data=adjusted_masks)
-    hf.close()
+    # hf = h5py.File(os.path.join(data_filepath,'updated_Berson.h5'), 'w')
+    # hf.create_dataset('volume', data=volume)
+    # hf.create_dataset('masks', data=masks)
+    # hf.create_dataset('binary_masks', data=adjusted_masks)
+    # hf.close()
 
 def build_tfrecords(data_filepath, tfrecords_filepath):
     """
@@ -85,5 +85,5 @@ def build_tfrecords(data_filepath, tfrecords_filepath):
 if __name__ == '__main__':
     main_data_dir = '/media/data_cifs/andreas/connectomics/Berson'
     main_tfrecords_dir = '/media/data_cifs/andreas/connectomics/tfrecords/'
-    build_tfrecords(main_data_dir,main_tfrecords_dir)
-    # adjust_files(main_data_dir)
+    # build_tfrecords(main_data_dir,main_tfrecords_dir)
+    adjust_files(main_data_dir)
