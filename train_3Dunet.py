@@ -21,14 +21,14 @@ def train(device):
     np_train_volume = volume[:80,:,:]
     np_train_aff = affinity[:80,:,:]
 
-    np_test_volume = volume[80:,:,:]
-    np_test_aff = affinity[80:,:,:]
+    np_val_volume = volume[80:,:,:]
+    np_val_aff = affinity[80:,:,:]
 
     np_train_volume = np.expand_dims(np_train_volume, -1)
     np_train_aff = np.expand_dims(np_train_aff, -1)
 
-    np_test_volume = np.expand_dims(np_test_volume, -1)
-    np_test_aff = np.expand_dims(np_test_aff, -1)
+    np_val_volume = np.expand_dims(np_val_volume, -1)
+    np_val_aff = np.expand_dims(np_val_aff, -1)
 
     with tf.Graph().as_default():
 
@@ -41,11 +41,11 @@ def train(device):
         print 'Training model: {0}'.format(dt_stamp)
         print '-'*60
 
-        train_volume = tf.placeholder(tf.float32, shape=[None,32,128,128,1], name='train_volume')
-        train_aff = tf.placeholder(tf.int32, shape=[None,32,128,128,1], name='train_aff')
+        train_volume = tf.placeholder(tf.float32, shape=[None,16,128,128,1], name='train_volume')
+        train_aff = tf.placeholder(tf.int32, shape=[None,16,128,128,1], name='train_aff')
 
-        val_volume = tf.placeholder(tf.float32, shape=[None,32,128,128,1], name='val_volume')
-        val_aff = tf.placeholder(tf.int32, shape=[None,32,128,128,1], name='val_aff')
+        val_volume = tf.placeholder(tf.float32, shape=[None,16,128,128,1], name='val_volume')
+        val_aff = tf.placeholder(tf.int32, shape=[None,16,128,128,1], name='val_aff')
         # # summaries to use with tensorboard check https://www.tensorflow.org/get_started/summaries_and_tensorboard
         # tf.summary.image('train images', train_images, max_outputs=1)
         # tf.summary.image('train masks', train_masks, max_outputs=1)
@@ -67,11 +67,9 @@ def train(device):
                     
                 train_prob = tf.nn.softmax(train_logits)
                 train_scores = tf.argmax(train_prob, axis=4)
-                print train_scores
-                print train_aff
                 train_a_rand = config.a_rand(train_scores, train_aff)
 
-                tf.summary.scalar("Train ARAND", train_a_rand)
+                # tf.summary.scalar("Train ARAND", train_a_rand)
                 
                 flatten_train_aff = tf.reshape(train_aff, [-1])
                 flatten_train_logits = tf.reshape(train_logits, [-1, config.output_shape])
@@ -90,7 +88,7 @@ def train(device):
                     batch_loss = weighted_loss
 
                 loss = tf.reduce_mean(batch_loss)
-                tf.summary.scalar("loss", loss)
+                # tf.summary.scalar("loss", loss)
 
                 if config.use_decay:
                     lr = tf.train.exponential_decay(
@@ -129,21 +127,19 @@ def train(device):
 
                 val_prob = tf.nn.softmax(val_logits)
                 val_scores = tf.argmax(val_prob, axis=4)
-                print val_scores
-                print val_aff
                 val_a_rand = config.a_rand(val_scores, val_aff)
 
-                tf.summary.scalar("Validation ARAND", val_a_rand)
+                # tf.summary.scalar("Validation ARAND", val_a_rand)
 
         saver = tf.train.Saver(max_to_keep=100)
 
-        summary_op = tf.summary.merge_all()
+        # summary_op = tf.summary.merge_all()
 
         with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
 
             sess.run(tf.group(tf.global_variables_initializer(),
                  tf.local_variables_initializer()))
-            summary_writer = tf.summary.FileWriter(summary_dir, sess.graph)
+            # summary_writer = tf.summary.FileWriter(summary_dir, sess.graph)
 
             np.save(os.path.join(out_dir, 'training_config_file'), config)
             val_a_rand_min, losses = float('inf'), []
@@ -151,11 +147,11 @@ def train(device):
             for _ in range(config.iters):
 
                 crop_train_volume, indiciies = random_crop_volume(np_train_volume,config.crop_size)
-                crop_train_affinities = crop_volume(np_train_aff,config.crop_size, indiciies)
+                crop_train_aff = crop_volume(np_train_aff,config.crop_size, indiciies)
 
                 start_time = time.time()
                 step_count, loss_value, train_a_rand_value, lr_value, _ = sess.run([step_op, loss, train_a_rand, lr, train_op],feed_dict={train_volume: crop_train_volume,
-                                                                                                                              train_aff: crop_train_affinities})
+                                                                                                                              train_aff: crop_train_aff})
                 losses.append(loss_value)
                 duration = time.time() - start_time
                 assert not np.isnan(loss_value), 'Model diverged with loss = NaN'
@@ -167,24 +163,24 @@ def train(device):
                     for num_vals in range(config.num_batches_to_validate_over):
 
                         crop_val_volume, indiciies = random_crop_volume(np_val_volume,config.crop_size)
-                        crop_val_affinities = crop_volume(np_val_aff,config.crop_size, indiciies)
+                        crop_val_aff = crop_volume(np_val_aff,config.crop_size, indiciies)
                         # Validation accuracy as the average of n batches
                         it_a_rand = np.append(
                             it_a_rand, sess.run(val_a_rand,feed_dict={val_volume: crop_val_volume,
-                                                                      val_aff: crop_val_affinities}))
+                                                                      val_aff: crop_val_aff}))
                     
                     val_a_rand_total = it_a_rand.mean()
 
                     # summary_str = sess.run(summary_op)
-                    summary_writer.add_summary(summary_str, step_count)
+                    # summary_writer.add_summary(summary_str, step_count)
 
                     # Training status and validation accuracy
                     msg = '{0}: step {1}, loss = {2:.2f} ({3:.2f} examples/sec; '\
-                        + '{4:.2f} sec/batch] | Training ARAND = {5:.6f}) '\
-                        +  '| Validation ARAND = {6:.6f} | logdir = {7}'
+                        + ' | Training ARAND = {4:.6f}) '\
+                        +  '| Validation ARAND = {5:.6f} | logdir = {6}'
                     print msg.format(
                           datetime.datetime.now(), step_count, loss_value,
-                          (config.train_batch_size / duration), float(duration),
+                           float(duration),
                           train_a_rand_value, val_a_rand_total, summary_dir)
                     print "learning rate: ", lr_value
 
@@ -200,9 +196,8 @@ def train(device):
                 else:
                     # Training status
                     msg = '{0}: step {1}, loss = {2:.2f} ({3:.2f} examples/sec; '\
-                        + '{4:.2f} sec/batch | Training ARAND =  {5:.6f})'
+                        + '| Training ARAND =  {4:.6f})'
                     print msg.format(datetime.datetime.now(), step_count, loss_value,
-                          (config.train_batch_size / duration),
                           float(duration),train_a_rand_value)
                 # End iteration
 

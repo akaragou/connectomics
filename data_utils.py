@@ -101,7 +101,7 @@ def random_crop_volume(volume,crop_size):
     D = np.shape(volume)[0]
     H = np.shape(volume)[1]
     W = np.shape(volume)[2]
-    
+
     d_crop = crop_size[0]
     h_crop = crop_size[1]
     w_crop = crop_size[2]

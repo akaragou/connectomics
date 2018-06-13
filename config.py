@@ -23,10 +23,10 @@ class ConnectomicsConfig():
         self.learning_rate_decay_factor = 0.5 
         self.num_batches_to_validate_over = 1 # number of batches to validate over 
         self.validate_every_num_steps = 50 # perform a validation step
-        self.iters = 100
+        self.iters = 100000
         self.output_shape = 2 # output shape of the model if 2 we have binary classification 
 
-        self.crop_size = [32, 128, 128]
+        self.crop_size = [16, 128, 128]
     
 
     def adapted_rand(self, seg, gt):
