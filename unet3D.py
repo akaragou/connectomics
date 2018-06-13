@@ -140,7 +140,7 @@ def ResidualUnet3D(inputs,
          num_classes = 1,
          is_training = True,
          is_batch_norm = False,
-         scope='unet3D'):
+         scope='resUnet3D'):
     with tf.variable_scope(scope, 'residualUnet3D', [inputs]) as sc:
 
         ######################

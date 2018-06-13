@@ -8,7 +8,6 @@ import numpy as np
 import os
 import h5py
 import cv2
-from matplotlib import pyplot as plt
 from tf_record import create_tf_record
 
 def adjust_files(data_filepath):
