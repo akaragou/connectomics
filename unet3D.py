@@ -30,8 +30,8 @@ def transpose3d(net, D, H, W, output_shape, is_training, batch_norm, acitvation,
         output_dim = output_shape[-1]
         w = tf.get_variable('w', [D, H, W, output_dim, net.get_shape()[-1]],
                             initializer=tf.contrib.layers.xavier_initializer())
-        trans = tf.nn.conv3d_transpose(net, w, output_shape, strides=[1, 1, 2, 2, 1], padding='SAME')
-        b = tf.get_variable('b', [output_shape], initializer=tf.constant_initializer(0.0))
+        trans = tf.nn.conv3d_transpose(net, w, output_shape, strides=[1, 2, 2, 2, 1], padding='SAME') # stride is different for residual 3Dunet
+        b = tf.get_variable('b', [output_dim], initializer=tf.constant_initializer(0.0))
         trans = tf.nn.bias_add(trans, b)
         if batch_norm:
             bn = tf.contrib.layers.batch_norm(trans, is_training=is_training, scope='bn',
@@ -66,7 +66,6 @@ def up_skip(conv, skip):
 def Unet3D(inputs,
          num_classes = 2,
          is_training = True,
-         is_batch_norm = False,
          scope='unet3D'):
     with tf.variable_scope(scope, 'unet3D', [inputs]) as sc:
 
@@ -139,7 +138,6 @@ def Unet3D(inputs,
 def ResidualUnet3D(inputs,
          num_classes = 1,
          is_training = True,
-         is_batch_norm = False,
          scope='resUnet3D'):
     with tf.variable_scope(scope, 'residualUnet3D', [inputs]) as sc:
 

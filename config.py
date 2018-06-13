@@ -26,7 +26,7 @@ class ConnectomicsConfig():
         self.iters = 100
         self.output_shape = 2 # output shape of the model if 2 we have binary classification 
 
-        self.crop_size = [18, 160, 160]
+        self.crop_size = [32, 128, 128]
     
 
     def adapted_rand(self, seg, gt):

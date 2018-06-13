@@ -98,7 +98,10 @@ def create_boundary_map(np_volume, np_masks, plot=False):
 
 def random_crop_volume(volume,crop_size):
 
-    D, H, W = np.shape(volume)
+    D = np.shape(volume)[0]
+    H = np.shape(volume)[1]
+    W = np.shape(volume)[2]
+    
     d_crop = crop_size[0]
     h_crop = crop_size[1]
     w_crop = crop_size[2]
@@ -107,11 +110,14 @@ def random_crop_volume(volume,crop_size):
     h_index = random.randint(0, (H-h_crop))
     w_index = random.randint(0, (W-w_crop))
 
-    return volume[d_index:d_index+d_crop,h_index:h_index+h_crop,w_index:w_index+w_crop], (d_index, h_index, w_index)
+    return volume[None, d_index:d_index+d_crop,h_index:h_index+h_crop,w_index:w_index+w_crop,:], (d_index, h_index, w_index)
 
 def crop_volume(volume,crop_size,indicies):
 
-    D, H, W = np.shape(volume)
+    D = np.shape(volume)[0]
+    H = np.shape(volume)[1]
+    W = np.shape(volume)[2]
+
     d_crop = crop_size[0]
     h_crop = crop_size[1]
     w_crop = crop_size[2]
@@ -120,7 +126,7 @@ def crop_volume(volume,crop_size,indicies):
     h_index = indicies[1]
     w_index = indicies[2]
 
-    return volume[d_index:d_index+d_crop,h_index:h_index+h_crop,w_index:w_index+w_crop]
+    return volume[None, d_index:d_index+d_crop,h_index:h_index+h_crop,w_index:w_index+w_crop,:]
 
 
 def load_images_and_labels(data_filepath, plot=False):
