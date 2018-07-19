@@ -79,7 +79,7 @@ def Unet(inputs,
         # downsampling  path #
         ######################
         conv1_1 = slim.conv2d(inputs, 64, [3,3], scope='conv1/conv1_1')
-        conv1_2 = slim.conv2d(inputs, 64, [3,3], scope='conv1/conv1_2')
+        conv1_2 = slim.conv2d(conv1_1, 64, [3,3], scope='conv1/conv1_2')
         pool1 = slim.max_pool2d(conv1_2, [2, 2], scope='pool1')
 
         conv2_1 = slim.conv2d(pool1, 128, [3,3], scope='conv2/conv2_1')
